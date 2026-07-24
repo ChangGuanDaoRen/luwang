@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>非遗文化3D展演</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Serif SC', 'STSong', 'SimSun', 'KaiTi', serif;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* 加载画面 */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(212, 175, 55, 0.3);
+      border-top-color: #d4af37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      color: #d4af37;
+      font-size: 18px;
+      margin-top: 20px;
+      letter-spacing: 4px;
+    }
+
+    /* 错误提示 */
+    #error-msg {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff6b6b;
+      font-size: 16px;
+      text-align: center;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px 30px;
+      border-radius: 8px;
+      border: 1px solid #ff6b6b;
+      line-height: 1.8;
+    }
+
+    /* 顶部标题栏 */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 30px;
+      background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(26, 26, 46, 0) 100%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #header h1 {
+      color: #d4af37;
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    }
+
+    #header .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(212, 175, 55, 0.4);
+    }
+
+    #header .subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    /* 底部提示 */
+    #hint {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      letter-spacing: 2px;
+      z-index: 100;
+      pointer-events: none;
+      transition: opacity 2s ease;
+    }
+
+    /* 控制面板 */
+    #controls {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    #controls button {
+      padding: 10px 20px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: #d4af37;
+      font-family: inherit;
+      font-size: 14px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    #controls button:hover {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: #d4af37;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+    }
+
+    #controls button.active {
+      background: rgba(212, 175, 55, 0.4);
+      border-color: #d4af37;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 加载画面 -->
+    <div id="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">加载中</div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div id="error-msg"></div>
+
+    <!-- 顶部标题 -->
+    <div id="header">
+      <h1>非遗文化</h1>
+      <div class="divider"></div>
+      <span class="subtitle">3D 数字展演</span>
+    </div>
+
+    <!-- 操作提示 -->
+    <div id="hint">🖱 鼠标拖拽旋转 &nbsp;|&nbsp; 滚轮缩放 &nbsp;|&nbsp; 右键平移</div>
+
+    <!-- 控制按钮 -->
+    <div id="controls">
+      <button id="btn-reset" title="重置视角">重置视角</button>
+      <button id="btn-auto" title="自动旋转">自动旋转</button>
+    </div>
+  </div>
+
+  <!-- Import Map：通过 CDN 加载 Three.js -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ============================================================
+    // 错误处理：捕获加载失败
+    // ============================================================
+    window.addEventListener('error', function(e) {
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error-msg');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) {
+        errorEl.style.display = 'block';
+        errorEl.innerHTML = '⚠️ 加载失败<br><small>请确保电脑已连接互联网<br>Three.js 需要通过 CDN 加载</small>';
+      }
+    });
+
+    // ============================================================
+    // 主场景初始化
+    // ============================================================
+    const container = document.getElementById('app');
+    const loadingEl = document.getElementById('loading');
+
+    // 渲染器
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+
+    // 场景
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#1a1a2e');
+    scene.fog = new THREE.Fog('#1a1a2e', 15, 60);
+
+    // 相机
+    const camera = new THREE.PerspectiveCamera(
+      50,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    );
+    camera.position.set(6, 4, 10);
+    camera.lookAt(0, 0, 0);
+
+    // OrbitControls - 手动拖拽交互
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 0.5, 0);
+    controls.minDistance = 3;
+    controls.maxDistance = 20;
+    controls.maxPolarAngle = Math.PI * 0.65;
+    controls.minPolarAngle = 0.2;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.8;
+    controls.update();
+
+    // ============================================================
+    // 光照系统
+    // ============================================================
+    function setupLights() {
+      // 环境光
+      const ambientLight = new THREE.AmbientLight('#2a2a4a', 1.2);
+      scene.add(ambientLight);
+
+      // 半球光
+      const hemisphereLight = new THREE.HemisphereLight('#d4cfc0', '#3a2a1a', 0.6);
+      scene.add(hemisphereLight);
+
+      // 主方向光
+      const keyLight = new THREE.DirectionalLight('#ffffff', 4);
+      keyLight.position.set(8, 10, 5);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.camera.near = 0.5;
+      keyLight.shadow.camera.far = 50;
+      keyLight.shadow.camera.left = -10;
+      keyLight.shadow.camera.right = 10;
+      keyLight.shadow.camera.top = 10;
+      keyLight.shadow.camera.bottom = -10;
+      keyLight.shadow.bias = -0.0001;
+      keyLight.shadow.normalBias = 0.02;
+      scene.add(keyLight);
+
+      // 侧面补光
+      const fillLight = new THREE.DirectionalLight('#8899cc', 1.5);
+      fillLight.position.set(-4, 2, -3);
+      scene.add(fillLight);
+
+      // 底部补光
+      const rimLight = new THREE.DirectionalLight('#d4af37', 2);
+      rimLight.position.set(0, -1, 3);
+      scene.add(rimLight);
+
+      // 顶部点光源
+      const topLight = new THREE.PointLight('#fff8e7', 15, 12, 1.5);
+      topLight.position.set(0, 5, 0);
+      scene.add(topLight);
+
+      // 氛围点光源
+      const accentLight1 = new THREE.PointLight('#d4af37', 8, 8, 2);
+      accentLight1.position.set(3, 1.5, 3);
+      scene.add(accentLight1);
+
+      const accentLight2 = new THREE.PointLight('#d4af37', 8, 8, 2);
+      accentLight2.position.set(-3, 1.5, -3);
+      scene.add(accentLight2);
+    }
+
+    setupLights();
+
+    // ============================================================
+    // 展演平台
+    // ============================================================
+    function createExhibitPlatform() {
+      const group = new THREE.Group();
+
+      // 底座（八角形）
+      const baseGeometry = new THREE.CylinderGeometry(2.2, 2.4, 0.25, 8);
+      const baseMaterial = new THREE.MeshStandardMaterial({
+        color: '#2a1f0e',
+        roughness: 0.5,
+        metalness: 0.3,
+      });
+      const base = new THREE.Mesh(baseGeometry, baseMaterial);
+      base.position.y = -0.15;
+      base.castShadow = true;
+      base.receiveShadow = true;
+      group.add(base);
+
+      // 台面
+      const platformGeometry = new THREE.CylinderGeometry(2.0, 2.1, 0.12, 64);
+      const platformMaterial = new THREE.MeshStandardMaterial({
+        color: '#3a2a1a',
+        roughness: 0.35,
+        metalness: 0.5,
+      });
+      const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+      platform.position.y = 0.05;
+      platform.castShadow = true;
+      platform.receiveShadow = true;
+      group.add(platform);
+
+      // 金色装饰环
+      const ringGeometry = new THREE.TorusGeometry(2.05, 0.04, 16, 64);
+      const ringMaterial = new THREE.MeshStandardMaterial({
+        color: '#d4af37',
+        roughness: 0.2,
+        metalness: 0.9,
+      });
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.12;
+      ring.receiveShadow = true;
+      group.add(ring);
+
+      // 内圈装饰
+      const innerRingGeometry = new THREE.TorusGeometry(1.6, 0.02, 8, 64);
+      const innerRingMaterial = new THREE.MeshStandardMaterial({
+        color: '#d4af37',
+        roughness: 0.15,
+        metalness: 0.95,
+      });
+      const innerRing = new THREE.Mesh(innerRingGeometry, innerRingMaterial);
+      innerRing.rotation.x = Math.PI / 2;
+      innerRing.position.y = 0.11;
+      group.add(innerRing);
+
+      // 底部光晕（半透明平面）
+      const glowGeometry = new THREE.PlaneGeometry(4.5, 4.5);
+      const glowMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color('#d4af37') },
+        },
+        vertexShader: /* glsl */ `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          varying vec2 vUv;
+          uniform vec3 uColor;
+          void main() {
+            float dist = length(vUv - 0.5) * 2.0;
+            float alpha = smoothstep(1.0, 0.0, dist) * 0.25;
+            gl_FragColor = vec4(uColor, alpha);
+          }
+        `,
+        transparent: true,
+        depthWrite: false,
+      });
+      const glowPlane = new THREE.Mesh(glowGeometry, glowMaterial);
+      glowPlane.rotation.x = -Math.PI / 2;
+      glowPlane.position.y = 0.0;
+      group.add(glowPlane);
+
+      // 四角装饰柱
+      const pillarPositions = [
+        [1.8, 0, 1.8],
+        [-1.8, 0, 1.8],
+        [1.8, 0, -1.8],
+        [-1.8, 0, -1.8],
+      ];
+
+      pillarPositions.forEach(([px, py, pz]) => {
+        const pillarGeometry = new THREE.CylinderGeometry(0.08, 0.1, 1.5, 16);
+        const pillarMaterial = new THREE.MeshStandardMaterial({
+          color: '#d4af37',
+          roughness: 0.25,
+          metalness: 0.85,
+        });
+        const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
+        pillar.position.set(px, py + 0.75, pz);
+        pillar.castShadow = true;
+        pillar.receiveShadow = true;
+        group.add(pillar);
+
+        // 柱顶小球
+        const topBallGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+        const topBall = new THREE.Mesh(topBallGeometry, pillarMaterial);
+        topBall.position.set(px, py + 1.5, pz);
+        topBall.castShadow = true;
+        group.add(topBall);
+      });
+
+      // 地面投影接收面
+      const groundGeometry = new THREE.PlaneGeometry(12, 12);
+      const groundMaterial = new THREE.MeshStandardMaterial({
+        color: '#111122',
+        roughness: 0.9,
+        metalness: 0.1,
+      });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.3;
+      ground.receiveShadow = true;
+      group.add(ground);
+
+      return group;
+    }
+
+    const platform = createExhibitPlatform();
+    scene.add(platform);
+
+    // ============================================================
+    // 演示几何体（5件非遗主题展品）
+    // ============================================================
+    function createDemoGeometries() {
+      const group = new THREE.Group();
+
+      // ---- 展品1：青瓷瓶（LatheGeometry 旋转体） ----
+      const vaseGroup = new THREE.Group();
+      const points = [];
+      const segments = 40;
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        let radius;
+        if (t < 0.05) {
+          radius = 0.15 + t * 2;
+        } else if (t < 0.2) {
+          radius = 0.25 + Math.sin((t - 0.05) / 0.15 * Math.PI) * 0.35;
+        } else if (t < 0.4) {
+          radius = 0.6 - t * 0.5;
+        } else if (t < 0.55) {
+          radius = 0.35 + (t - 0.4) * 0.3;
+        } else if (t < 0.8) {
+          radius = 0.4 - (t - 0.55) * 0.7;
+        } else if (t < 0.95) {
+          radius = 0.22 + (t - 0.8) * 0.15;
+        } else {
+          radius = 0.24;
+        }
+        points.push(new THREE.Vector2(radius, t * 2.0 - 0.2));
+      }
+
+      const vaseGeometry = new THREE.LatheGeometry(points, 48);
+      const vaseMaterial = new THREE.MeshStandardMaterial({
+        color: '#7eb8b0',
+        roughness: 0.2,
+        metalness: 0.1,
+      });
+      const vase = new THREE.Mesh(vaseGeometry, vaseMaterial);
+      vase.position.y = 1.0;
+      vase.castShadow = true;
+      vase.receiveShadow = true;
+      vase.userData = { animate: true, rotationSpeed: 0.3, baseY: 1.0 };
+      vaseGroup.add(vase);
+
+      // 瓶子装饰金线
+      const ringGeo = new THREE.TorusGeometry(0.42, 0.015, 8, 48);
+      const ringMat = new THREE.MeshStandardMaterial({
+        color: '#d4af37',
+        roughness: 0.15,
+        metalness: 0.9,
+      });
+      const ring1 = new THREE.Mesh(ringGeo, ringMat);
+      ring1.position.y = 0.72;
+      ring1.rotation.x = Math.PI / 2;
+      vaseGroup.add(ring1);
+      const ring2 = new THREE.Mesh(ringGeo.clone(), ringMat);
+      ring2.position.y = 1.05;
+      ring2.rotation.x = Math.PI / 2;
+      ring2.scale.set(0.9, 0.9, 0.9);
+      vaseGroup.add(ring2);
+
+      vaseGroup.position.set(-1.2, 0.2, 0.6);
+      group.add(vaseGroup);
+
+      // ---- 展品2：玉璧（圆环体） ----
+      const biGroup = new THREE.Group();
+      const biGeometry = new THREE.TorusGeometry(0.55, 0.18, 32, 64);
+      const biMaterial = new THREE.MeshStandardMaterial({
+        color: '#c8e6c9',
+        roughness: 0.15,
+        metalness: 0.05,
+      });
+      const bi = new THREE.Mesh(biGeometry, biMaterial);
+      bi.position.y = 1.2;
+      bi.castShadow = true;
+      bi.receiveShadow = true;
+      bi.userData = { animate: true, rotationSpeed: 0.5, baseY: 1.2 };
+      biGroup.add(bi);
+
+      const standGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.8, 16);
+      const standMat = new THREE.MeshStandardMaterial({
+        color: '#3a2a1a',
+        roughness: 0.4,
+        metalness: 0.5,
+      });
+      const stand = new THREE.Mesh(standGeo, standMat);
+      stand.position.y = 0.5;
+      stand.castShadow = true;
+      stand.receiveShadow = true;
+      biGroup.add(stand);
+
+      biGroup.position.set(1.2, 0.2, -0.6);
+      group.add(biGroup);
+
+      // ---- 展品3：青铜鼎（BoxGeometry 组合） ----
+      const dingGroup = new THREE.Group();
+      const bronzeMat = new THREE.MeshStandardMaterial({
+        color: '#5d7a5e',
+        roughness: 0.35,
+        metalness: 0.7,
+      });
+
+      const bodyGeo = new THREE.BoxGeometry(0.9, 0.7, 0.7, 2, 2, 2);
+      const body = new THREE.Mesh(bodyGeo, bronzeMat);
+      body.position.y = 1.0;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      dingGroup.add(body);
+
+      // 鼎足
+      for (let x = -1; x <= 1; x += 2) {
+        for (let z = -1; z <= 1; z += 2) {
+          const legGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.6, 8);
+          const leg = new THREE.Mesh(legGeo, bronzeMat);
+          leg.position.set(x * 0.3, 0.35, z * 0.25);
+          leg.castShadow = true;
+          leg.receiveShadow = true;
+          dingGroup.add(leg);
+        }
+      }
+
+      // 鼎耳
+      for (let x = -1; x <= 1; x += 2) {
+        const earGeo = new THREE.TorusGeometry(0.18, 0.06, 8, 12);
+        const ear = new THREE.Mesh(earGeo, bronzeMat);
+        ear.position.set(x * 0.3, 1.45, 0);
+        ear.rotation.z = Math.PI / 2 * x;
+        ear.castShadow = true;
+        dingGroup.add(ear);
+      }
+
+      // 鼎口装饰线
+      const rimGeo = new THREE.BoxGeometry(0.94, 0.04, 0.74);
+      const rim = new THREE.Mesh(rimGeo, new THREE.MeshStandardMaterial({
+        color: '#d4af37',
+        roughness: 0.2,
+        metalness: 0.85,
+      }));
+      rim.position.y = 1.36;
+      rim.castShadow = true;
+      dingGroup.add(rim);
+
+      dingGroup.position.set(0, 0.2, -0.8);
+      dingGroup.userData = { animate: true, rotationSpeed: 0.25, baseY: 0.2 };
+      group.add(dingGroup);
+
+      // ---- 展品4：绣球（IcosahedronGeometry） ----
+      const ballGroup = new THREE.Group();
+      const ballGeometry = new THREE.IcosahedronGeometry(0.45, 1);
+      const ballMaterial = new THREE.MeshStandardMaterial({
+        color: '#c62828',
+        roughness: 0.3,
+        metalness: 0.2,
+      });
+      const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+      ball.position.y = 1.2;
+      ball.castShadow = true;
+      ball.receiveShadow = true;
+      ball.userData = { animate: true, rotationSpeed: 0.6, baseY: 1.2 };
+      ballGroup.add(ball);
+
+      // 绣球金色线框
+      const wireframeGeo = new THREE.IcosahedronGeometry(0.47, 1);
+      const wireframeMat = new THREE.MeshBasicMaterial({
+        color: '#d4af37',
+        wireframe: true,
+        transparent: true,
+        opacity: 0.3,
+      });
+      const wireframe = new THREE.Mesh(wireframeGeo, wireframeMat);
+      wireframe.position.y = 1.2;
+      ballGroup.add(wireframe);
+
+      const ballStandGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.4, 16);
+      const ballStand = new THREE.Mesh(ballStandGeo, new THREE.MeshStandardMaterial({
+        color: '#3a2a1a',
+        roughness: 0.4,
+        metalness: 0.5,
+      }));
+      ballStand.position.y = 0.25;
+      ballStand.castShadow = true;
+      ballStand.receiveShadow = true;
+      ballGroup.add(ballStand);
+
+      ballGroup.position.set(-0.6, 0.2, 0.9);
+      group.add(ballGroup);
+
+      // ---- 展品5：卷轴/丝绸（圆柱体组合） ----
+      const scrollGroup = new THREE.Group();
+      const scrollBodyGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.2, 32);
+      const scrollBodyMat = new THREE.MeshStandardMaterial({
+        color: '#fff8e1',
+        roughness: 0.6,
+        metalness: 0.05,
+      });
+      const scrollBody = new THREE.Mesh(scrollBodyGeo, scrollBodyMat);
+      scrollBody.position.y = 1.1;
+      scrollBody.rotation.z = Math.PI / 2;
+      scrollBody.castShadow = true;
+      scrollBody.receiveShadow = true;
+      scrollGroup.add(scrollBody);
+
+      for (let x = -1; x <= 1; x += 2) {
+        const endGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.1, 32);
+        const endMat = new THREE.MeshStandardMaterial({
+          color: '#8d6e63',
+          roughness: 0.3,
+          metalness: 0.6,
+        });
+        const end = new THREE.Mesh(endGeo, endMat);
+        end.position.set(x * 0.62, 1.1, 0);
+        end.rotation.z = Math.PI / 2;
+        end.castShadow = true;
+        end.receiveShadow = true;
+        scrollGroup.add(end);
+      }
+
+      // 丝绸包裹效果
+      const silkGeo = new THREE.PlaneGeometry(0.5, 0.8, 8, 8);
+      const posAttr = silkGeo.getAttribute('position');
+      for (let i = 0; i < posAttr.count; i++) {
+        const y = posAttr.getY(i);
+        const x = posAttr.getX(i);
+        posAttr.setZ(i, Math.sin(y * 3) * 0.08 + Math.cos(x * 4) * 0.05);
+      }
+      silkGeo.computeVertexNormals();
+      const silkMat = new THREE.MeshStandardMaterial({
+        color: '#e8d5b7',
+        roughness: 0.5,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+      });
+      const silk = new THREE.Mesh(silkGeo, silkMat);
+      silk.position.set(0, 1.1, 0.3);
+      silk.rotation.x = -0.3;
+      silk.castShadow = true;
+      scrollGroup.add(silk);
+
+      scrollGroup.position.set(0.7, 0.2, 0.7);
+      scrollGroup.userData = { animate: true, rotationSpeed: 0.2, baseY: 0.2 };
+      group.add(scrollGroup);
+
+      return group;
+    }
+
+    const geometries = createDemoGeometries();
+    scene.add(geometries);
+
+    // ============================================================
+    // 粒子背景
+    // ============================================================
+    function createParticles() {
+      const count = 300;
+      const positions = new Float32Array(count * 3);
+      const sizes = new Float32Array(count);
+
+      for (let i = 0; i < count; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const radius = 5 + Math.random() * 8;
+        positions[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
+        positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.6 + 2;
+        positions[i * 3 + 2] = Math.cos(phi) * radius;
+        sizes[i] = Math.random() * 3 + 1;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      gradient.addColorStop(0, 'rgba(212, 175, 55, 1)');
+      gradient.addColorStop(0.2, 'rgba(212, 175, 55, 0.8)');
+      gradient.addColorStop(0.5, 'rgba(212, 175, 55, 0.3)');
+      gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 32, 32);
+      const texture = new THREE.CanvasTexture(canvas);
+
+      const material = new THREE.PointsMaterial({
+        map: texture,
+        color: '#d4af37',
+        size: 0.12,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.6,
+      });
+
+      return new THREE.Points(geometry, material);
+    }
+
+    const particles = createParticles();
+    scene.add(particles);
+
+    // ============================================================
+    // 控制按钮
+    // ============================================================
+    const btnReset = document.getElementById('btn-reset');
+    const btnAuto = document.getElementById('btn-auto');
+
+    btnReset.addEventListener('click', () => {
+      const startPos = { x: 6, y: 4, z: 10 };
+      const startTarget = { x: 0, y: 0.5, z: 0 };
+      const duration = 800;
+      const startTime = Date.now();
+      const initPos = camera.position.clone();
+      const initTarget = controls.target.clone();
+
+      function animateReset() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1.0);
+        const eased = progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        camera.position.lerpVectors(initPos, new THREE.Vector3(startPos.x, startPos.y, startPos.z), eased);
+        controls.target.lerpVectors(initTarget, new THREE.Vector3(startTarget.x, startTarget.y, startTarget.z), eased);
+        if (progress < 1) {
+          requestAnimationFrame(animateReset);
+        }
+      }
+      animateReset();
+    });
+
+    let isAutoRotate = false;
+    btnAuto.addEventListener('click', () => {
+      isAutoRotate = !isAutoRotate;
+      controls.autoRotate = isAutoRotate;
+      if (isAutoRotate) {
+        btnAuto.classList.add('active');
+        btnAuto.textContent = '停止旋转';
+      } else {
+        btnAuto.classList.remove('active');
+        btnAuto.textContent = '自动旋转';
+      }
+    });
+
+    // ============================================================
+    // 窗口大小响应
+    // ============================================================
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ============================================================
+    // 动画循环
+    // ============================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      controls.update();
+
+      // 几何体自转动画
+      geometries.children.forEach((child, index) => {
+        if (child.userData && child.userData.animate) {
+          child.rotation.y += delta * child.userData.rotationSpeed;
+          child.position.y = child.userData.baseY + Math.sin(elapsed * 1.5 + index) * 0.15;
+        }
+      });
+
+      // 粒子缓慢旋转
+      particles.rotation.y += delta * 0.05;
+
+      renderer.render(scene, camera);
+    }
+
+    // ============================================================
+    // 启动
+    // ============================================================
+    setTimeout(() => {
+      loadingEl.classList.add('hidden');
+      setTimeout(() => loadingEl.remove(), 600);
+    }, 800);
+
+    animate();
+
+    console.log('🏮 非遗文化3D展演平台已就绪');
+  </script>
+</body>
+</html>
