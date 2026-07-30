@@ -1,858 +1,555 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>非遗文化3D展演</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Noto Serif SC', 'STSong', 'SimSun', 'KaiTi', serif;
-      overflow: hidden;
-      background: #1a1a2e;
-    }
-
-    #app {
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-    }
-
-    canvas {
-      display: block;
-    }
-
-    /* 加载画面 */
-    #loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #1a1a2e;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.6s ease;
-    }
-
-    #loading.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(212, 175, 55, 0.3);
-      border-top-color: #d4af37;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .loading-text {
-      color: #d4af37;
-      font-size: 18px;
-      margin-top: 20px;
-      letter-spacing: 4px;
-    }
-
-    /* 错误提示 */
-    #error-msg {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #ff6b6b;
-      font-size: 16px;
-      text-align: center;
-      z-index: 10000;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 20px 30px;
-      border-radius: 8px;
-      border: 1px solid #ff6b6b;
-      line-height: 1.8;
-    }
-
-    /* 顶部标题栏 */
-    #header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 20px 30px;
-      background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(26, 26, 46, 0) 100%);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    #header h1 {
-      color: #d4af37;
-      font-size: 24px;
-      font-weight: 400;
-      letter-spacing: 6px;
-      text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-    }
-
-    #header .divider {
-      width: 1px;
-      height: 24px;
-      background: rgba(212, 175, 55, 0.4);
-    }
-
-    #header .subtitle {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 14px;
-      letter-spacing: 2px;
-    }
-
-    /* 底部提示 */
-    #hint {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 13px;
-      letter-spacing: 2px;
-      z-index: 100;
-      pointer-events: none;
-      transition: opacity 2s ease;
-    }
-
-    /* 控制面板 */
-    #controls {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 100;
-    }
-
-    #controls button {
-      padding: 10px 20px;
-      background: rgba(212, 175, 55, 0.15);
-      border: 1px solid rgba(212, 175, 55, 0.4);
-      color: #d4af37;
-      font-family: inherit;
-      font-size: 14px;
-      letter-spacing: 2px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-
-    #controls button:hover {
-      background: rgba(212, 175, 55, 0.3);
-      border-color: #d4af37;
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
-    }
-
-    #controls button.active {
-      background: rgba(212, 175, 55, 0.4);
-      border-color: #d4af37;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>陇绣非遗 · 鹿望秦川</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div id="app">
-    <!-- 加载画面 -->
-    <div id="loading">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">加载中</div>
+
+<!-- ==================== 导航栏 ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="container">
+    <a href="#home" class="nav-brand">
+      <img class="brand-img" src="鹿望秦川实践团资料/队徽.jpg" alt="队徽" onerror="this.style.display='none'"/>
+      <div>
+        <span class="brand-text">陇绣</span>
+        <span class="brand-sub">鹿望秦川</span>
+      </div>
+    </a>
+    <div class="nav-menu" id="navMenu">
+      <a href="#intro">绣韵千年</a>
+      <a href="#features">陇绣之韵</a>
+      <a href="#stitches">针法技艺</a>
+      <a href="#masters">匠心独运</a>
+      <a href="#gallery">作品精选</a>
+      <a href="#wujue">庆阳五绝</a>
+      <a href="#team">实践团</a>
+      <a class="nav-btn" href="liuyunfan.html">刘云帆展馆</a>
+      <a class="nav-btn" href="caoyuanchun.html">曹苑春展馆</a>
     </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
 
-    <!-- 错误提示 -->
-    <div id="error-msg"></div>
-
-    <!-- 顶部标题 -->
-    <div id="header">
-      <h1>非遗文化</h1>
-      <div class="divider"></div>
-      <span class="subtitle">3D 数字展演</span>
+<!-- ==================== Hero 区域 ==================== -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-feather-alt"></i> 庆阳五绝 · 指尖非遗
+      </div>
+      <h1 class="hero-title">
+        <span class="char-big">陇</span>上
+        <span class="char-big">绣</span>
+        <span class="sub">针起线落 · 千年风华</span>
+      </h1>
+      <p class="hero-desc">
+        源自黄土高原深处的刺绣艺术，以针代笔、以线为墨，
+        在方寸素布间勾勒出华夏民族的审美基因与生命礼赞。
+      </p>
+      <div class="hero-actions">
+        <a href="#intro" class="btn btn-primary">
+          <i class="fas fa-arrow-down"></i> 探索陇绣
+        </a>
+        <a href="#team" class="btn btn-ghost">
+          <i class="fas fa-users"></i> 鹿望秦川实践团
+        </a>
+      </div>
+      <div class="hero-numbers">
+        <div class="num-item">
+          <span class="num-value">三千</span>
+          <span class="num-label">年传承历史</span>
+        </div>
+        <div class="num-item">
+          <span class="num-value">非遗</span>
+          <span class="num-label">省级名录</span>
+        </div>
+        <div class="num-item">
+          <span class="num-value">庆阳</span>
+          <span class="num-label">五绝之一</span>
+        </div>
+        <div class="num-item">
+          <span class="num-value">七十</span>
+          <span class="num-label">余种针法</span>
+        </div>
+      </div>
     </div>
-
-    <!-- 操作提示 -->
-    <div id="hint">🖱 鼠标拖拽旋转 &nbsp;|&nbsp; 滚轮缩放 &nbsp;|&nbsp; 右键平移</div>
-
-    <!-- 控制按钮 -->
-    <div id="controls">
-      <button id="btn-reset" title="重置视角">重置视角</button>
-      <button id="btn-auto" title="自动旋转">自动旋转</button>
+    <div class="hero-visual">
+      <div class="visual-ring">
+        <img src="鹿望秦川实践团资料/吉祥物鹿小陇.jpg" alt="鹿小陇" onerror="this.style.display='none'"/>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- Import Map：通过 CDN 加载 Three.js -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
-      }
+<!-- ==================== 绣韵千年 ==================== -->
+<section class="section section-alt" id="intro">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">CHANGXIU · ICH</div>
+      <h2>绣韵千年</h2>
+      <p class="subtitle">黄土高原上的指尖传奇</p>
+    </div>
+    <div class="intro-grid">
+      <div class="image-frame">
+        <img src="曹苑春/015ad2b674e27409c071477c28537e0e.jpg" alt="陇绣作品"/>
+      </div>
+      <div class="intro-text">
+        <h3>陇绣——<br/>黄土地孕育的艺术之花</h3>
+        <p>
+          陇绣，又称庆阳刺绣，是甘肃省庆阳市最具代表性的传统美术类非物质文化遗产。
+          它深深扎根于黄土高原的农耕文明，融合了周秦文化的古朴厚重与丝路文化的多元交融，
+          历经千年沉淀，形成了独具一格的刺绣艺术体系。
+        </p>
+        <p>
+          陇绣之美，在于其浓烈而不失和谐的色彩、饱满而不失灵动的构图、丰富而不失章法的针技。
+          每一幅作品都是陇原儿女对自然的礼赞、对生活的热爱、对美好的祈愿。
+        </p>
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="era">黄帝时期</span>庆阳相传为黄帝活动区域，刺绣萌芽于先民服饰纹样
+          </div>
+          <div class="timeline-item">
+            <span class="era">商周时期</span>北豳之地的刺绣承袭周礼，融入礼制与祭祀文化
+          </div>
+          <div class="timeline-item">
+            <span class="era">秦汉至唐</span>丝绸之路贯通陇东，陇绣吸纳西域纹样与技法
+          </div>
+          <div class="timeline-item">
+            <span class="era">宋金元明</span>民间刺绣蓬勃发展，庆阳香包绣制闻名陇上
+          </div>
+          <div class="timeline-item">
+            <span class="era">2006年</span>庆阳香包绣制列入甘肃省非物质文化遗产名录
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 陇绣之韵 ==================== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">THE ESSENCE</div>
+      <h2>陇绣之韵</h2>
+      <p class="subtitle">一针一线见天地</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon-wrap"><i class="fas fa-palette"></i></div>
+        <h4>浓烈色彩</h4>
+        <p>大红、深绿、明黄为主调<br/>对比鲜明而不失和谐<br/>尽显黄土高原的豪放热情</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon-wrap"><i class="fas fa-grip-lines"></i></div>
+        <h4>丰富针法</h4>
+        <p>齐针、套针、打籽、锁绣<br/>等数十种针法交替运用<br/>层次分明，纹理生动</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon-wrap"><i class="fas fa-shapes"></i></div>
+        <h4>吉祥纹样</h4>
+        <p>鱼戏莲、凤穿牡丹、麒麟送子<br/>传统图案寄寓着<br/>农耕民族的美好祝愿</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon-wrap"><i class="fas fa-heart"></i></div>
+        <h4>活态传承</h4>
+        <p>从香包、肚兜到挂件、屏风<br/>融入日常生活的陇绣<br/>在时代演进中延续生命力</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 针法技艺 ==================== -->
+<section class="section section-stitches" id="stitches">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">STITCHING TECHNIQUES</div>
+      <h2>针法技艺</h2>
+      <p class="subtitle">十类绣法 · 各显神通 · 匠心入微</p>
+    </div>
+    <p class="stitches-intro">
+      陇绣技法博大精深，涵盖铺绣、箔绣、堆绣、雕绣、裰绣、贴绣、挑花、盘金、钉线等十类绣法。
+      其中破线绣、合线绣、包绣、拼贴浮雕绣、打籽绣等典型技法最具代表性。
+    </p>
+    <div class="stitches-grid">
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-cut"></i></div>
+        <div class="stitch-info">
+          <h4>破线绣</h4>
+          <span class="stitch-tag">精细入微</span>
+          <p>将丝线剖解为原始单线进行刺绣，线条细若游丝，适合表现细腻的花鸟翎毛与人物面部，是陇绣中最考验功力的技法之一。</p>
+        </div>
+      </div>
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-circle-notch"></i></div>
+        <div class="stitch-info">
+          <h4>打籽绣</h4>
+          <span class="stitch-tag">颗粒质感</span>
+          <p>将绣线在针上绕圈后刺入布面，形成粒状小结，绣面密布均匀颗粒，富有立体感与触感，常用于花蕊、果实等图案。</p>
+        </div>
+      </div>
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-layer-group"></i></div>
+        <div class="stitch-info">
+          <h4>拼贴浮雕绣</h4>
+          <span class="stitch-tag">立体饱满</span>
+          <p>集剪贴、垫衬、刺绣于一体，以多层布料叠加缝制，打造浮雕般的高低起伏，造型饱满灵动，尤以虎头、金瓜等立体造型著称。</p>
+        </div>
+      </div>
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-gift"></i></div>
+        <div class="stitch-info">
+          <h4>包绣</h4>
+          <span class="stitch-tag">层叠造形</span>
+          <p>以纸片或布片为模，用针线包裹形成独特层次，边缘清晰利落，适合表现几何纹样与建筑图案，是陇绣构图的常用技法。</p>
+        </div>
+      </div>
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-link"></i></div>
+        <div class="stitch-info">
+          <h4>合线绣</h4>
+          <span class="stitch-tag">淳厚质朴</span>
+          <p>将多股丝线合成一股进行绣制，线迹厚重饱满，质感醇厚，表现出黄土高原特有的粗犷与豪放之美，常用于大幅作品。</p>
+        </div>
+      </div>
+      <div class="stitch-card">
+        <div class="stitch-icon"><i class="fas fa-feather-alt"></i></div>
+        <div class="stitch-info">
+          <h4>抢针·齐针</h4>
+          <span class="stitch-tag">基础功夫</span>
+          <p>齐针为平绣之基，线条整齐均匀；抢针分层递进、色彩渐次过渡。二者交替运用，层次分明，是陇绣最核心的基础针法。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 匠心独运 ==================== -->
+<section class="section section-alt" id="masters">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">MASTER ARTISANS</div>
+      <h2>匠心独运</h2>
+      <p class="subtitle">以针为笔 · 以线为墨 · 绣出陇原万象</p>
+    </div>
+    <div class="masters-grid">
+      <!-- 刘云帆 -->
+      <a href="liuyunfan.html" class="master-card">
+        <div class="card-img">
+          <img src="刘云帆/用于作为人物图.jpeg" alt="刘云帆作品"/>
+          <div class="img-overlay"><span>进入展馆</span></div>
+        </div>
+        <div class="card-body">
+          <h4>刘云帆</h4>
+          <span class="role">陇绣传承人</span>
+          <p>深耕陇绣数十载，将传统技法与现代审美融合，作品多次入选国家级展览，每一幅都凝聚着对陇绣的执着与敬畏。</p>
+          <span class="card-link">进入展馆 <i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
+      <!-- 曹苑春 -->
+      <a href="caoyuanchun.html" class="master-card">
+        <div class="card-img">
+          <img src="曹苑春/7efd32b2e5d5e1e6e6ffab89ff3eb611.jpg" alt="曹苑春作品"/>
+          <div class="img-overlay"><span>进入展馆</span></div>
+        </div>
+        <div class="card-body">
+          <h4>曹苑春</h4>
+          <span class="role">陇绣艺术家</span>
+          <p>以女性独有的细腻感悟陇绣之美，擅长花鸟鱼虫题材，针法灵动飘逸，作品既有传统韵味又不失当代审美。</p>
+          <span class="card-link">进入展馆 <i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 作品精选 ==================== -->
+<section class="section" id="gallery">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">GALLERY</div>
+      <h2>作品精选</h2>
+      <p class="subtitle">方寸之间见乾坤 · 点击放大欣赏</p>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-item" onclick="openLightbox('刘云帆/210c1b8fcd6256d3312f5ef10e6d1bde.jpg')">
+        <img src="刘云帆/210c1b8fcd6256d3312f5ef10e6d1bde.jpg" alt="刘云帆作品"/>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('刘云帆/07e45645b5d063192dcfd592cf3ef52e.jpg')">
+        <img src="刘云帆/07e45645b5d063192dcfd592cf3ef52e.jpg" alt="刘云帆作品"/>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('曹苑春/3465c6c9e9c55e4cffe49a627ac8e364.jpg')">
+        <img src="曹苑春/3465c6c9e9c55e4cffe49a627ac8e364.jpg" alt="曹苑春作品"/>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('刘云帆/f3c068ac264e648c337a8715e7a6d917.jpg')">
+        <img src="刘云帆/f3c068ac264e648c337a8715e7a6d917.jpg" alt="刘云帆作品"/>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('曹苑春/015ad2b674e27409c071477c28537e0e.jpg')">
+        <img src="曹苑春/015ad2b674e27409c071477c28537e0e.jpg" alt="曹苑春作品"/>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('曹苑春/fbc092edab787bf67db975b652a8d7f6.jpg')">
+        <img src="曹苑春/fbc092edab787bf67db975b652a8d7f6.jpg" alt="曹苑春作品"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 庆阳五绝 ==================== -->
+<section class="section section-alt" id="wujue">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">QINGYANG WUJUE</div>
+      <h2>庆阳五绝</h2>
+      <p class="subtitle">黄土高原的五颗文化明珠 · 陇绣为其一</p>
+    </div>
+    <div class="wujue-grid">
+      <div class="wujue-card">
+        <div class="wujue-icon-wrap">
+          <i class="fas fa-gem"></i>
+        </div>
+        <h4>香包</h4>
+        <p>国家级非物质文化遗产，以丝线绣制、内填香草，端午佩戴驱瘟避疫，庆阳被誉为"中国香包刺绣之乡"。</p>
+      </div>
+      <div class="wujue-card highlight">
+        <div class="wujue-icon-wrap">
+          <i class="fas fa-paint-brush"></i>
+        </div>
+        <h4>陇绣</h4>
+        <p>又称庆阳刺绣，省级非遗。针法古朴率真、色彩浓烈奔放，承袭周秦古韵，是黄土地孕育的艺术之花。</p>
+      </div>
+      <div class="wujue-card">
+        <div class="wujue-icon-wrap">
+          <i class="fas fa-cut"></i>
+        </div>
+        <h4>剪纸</h4>
+        <p>以刀代笔、以纸为媒，庆阳剪纸粗犷豪放、古朴稚拙，被誉为"农耕文明的活化石"，入选人类非物质文化遗产。</p>
+      </div>
+      <div class="wujue-card">
+        <div class="wujue-icon-wrap">
+          <i class="fas fa-theater-masks"></i>
+        </div>
+        <h4>道情皮影</h4>
+        <p>国家级非遗，环县道情皮影以牛皮雕刻、借灯显影，唱腔苍凉悠远，是中国皮影戏的重要流派之一。</p>
+      </div>
+      <div class="wujue-card">
+        <div class="wujue-icon-wrap">
+          <i class="fas fa-music"></i>
+        </div>
+        <h4>陇东民歌</h4>
+        <p>甘肃省非遗，曲调高亢嘹亮、质朴深情，《绣金匾》《军民大生产》等经典曲目传唱全国。</p>
+      </div>
+    </div>
+    <p class="wujue-note">
+      庆阳被中国民俗学会命名为"香包刺绣之乡""民间剪纸之乡""皮影之乡""窑洞民居之乡""荷花舞之乡"等十余项称号，
+      被文化部命名为"全国文化产业示范基地"。
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 鹿望秦川实践团 ==================== -->
+<section class="section section-ink" id="team">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">OUR TEAM</div>
+      <h2>鹿望秦川</h2>
+      <p class="subtitle">北京科技大学 · 社会实践团</p>
+    </div>
+    <div class="team-block">
+      <div class="team-brand">
+        <img class="emblem" src="鹿望秦川实践团资料/队徽.jpg" alt="队徽"/>
+        <h3>鹿望秦川</h3>
+        <p class="school">北京科技大学</p>
+        <p class="motto">"鹿鸣秦川，绣韵千年<br/>让非遗在新时代绽放光彩"</p>
+      </div>
+      <div class="team-content">
+        <h4>我们与陇绣的故事</h4>
+        <p>
+          我们是北京科技大学鹿望秦川实践团。怀揣着对中华优秀传统文化的敬意与热忱，
+          我们跨越千里，深入甘肃庆阳——陇绣的发源地。在这片厚重的黄土地上，
+          我们走访传承人、记录针法技艺、拍摄影像资料，用青年的视角重新审视这一古老的艺术形式。
+        </p>
+        <p>
+          陇绣不应该只是博物馆里的展品，它应该是活着的文化。我们希望通过这个网站，
+          让更多人看见陇绣的美、了解陇绣的故事、加入到保护与传承的队伍中来。
+        </p>
+        <div class="tag-row">
+          <span>非遗保护</span><span>陇绣文化</span><span>青年力量</span>
+          <span>文化自信</span><span>乡村振兴</span><span>薪火相传</span>
+        </div>
+        <div class="action-cards">
+          <div class="action-card">
+            <i class="fas fa-map-marked-alt"></i>
+            <h5>实地调研</h5>
+            <small>深入庆阳走访</small>
+          </div>
+          <div class="action-card">
+            <i class="fas fa-comments"></i>
+            <h5>对话传承</h5>
+            <small>面对面交流</small>
+          </div>
+          <div class="action-card">
+            <i class="fas fa-camera-retro"></i>
+            <h5>影像记录</h5>
+            <small>定格精彩瞬间</small>
+          </div>
+          <div class="action-card">
+            <i class="fas fa-bullhorn"></i>
+            <h5>宣传推广</h5>
+            <small>走向广阔舞台</small>
+          </div>
+        </div>
+        <!-- 社交媒体二维码 -->
+        <div class="qr-section">
+          <h5><i class="fas fa-qrcode"></i> 关注我们</h5>
+          <p>扫描下方二维码，关注鹿望秦川实践团官方账号，获取更多陇绣非遗资讯与活动动态</p>
+          <div class="qr-img-wrap">
+            <img src="鹿望秦川实践团资料/快手、抖音、公众号以及小红书的二维码.jpg" alt="鹿望秦川实践团社交媒体二维码"/>
+          </div>
+          <div class="qr-labels">
+            <span><i class="fas fa-video"></i> 快手</span>
+            <span><i class="fab fa-tiktok"></i> 抖音</span>
+            <span><i class="fab fa-weixin"></i> 公众号</span>
+            <span><i class="fas fa-book-open"></i> 小红书</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 金句 ==================== -->
+<section class="section">
+  <div class="container">
+    <div class="quote-block">
+      <span class="quote-mark">&ldquo;</span>
+      <blockquote>
+        文化是一个国家、一个民族的灵魂。<br/>
+        文化兴则国运兴，文化强则民族强。
+      </blockquote>
+      <cite>让非物质文化遗产绽放更加迷人的光彩</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 页脚 ==================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h4>陇绣非遗</h4>
+        <p>北京科技大学鹿望秦川实践团出品。<br/>致力于陇绣非物质文化遗产的保护、传承与推广。</p>
+        <div class="footer-social">
+          <a href="#" aria-label="微博"><i class="fab fa-weibo"></i></a>
+          <a href="#" aria-label="微信"><i class="fab fa-weixin"></i></a>
+          <a href="#" aria-label="B站"><i class="fab fa-bilibili"></i></a>
+          <a href="#" aria-label="抖音"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>快速导航</h5>
+        <ul>
+          <li><a href="#intro">绣韵千年</a></li>
+          <li><a href="#features">陇绣之韵</a></li>
+          <li><a href="#stitches">针法技艺</a></li>
+          <li><a href="#masters">匠心独运</a></li>
+          <li><a href="#gallery">作品精选</a></li>
+          <li><a href="#wujue">庆阳五绝</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>传承人展馆</h5>
+        <ul>
+          <li><a href="liuyunfan.html">刘云帆作品</a></li>
+          <li><a href="caoyuanchun.html">曹苑春作品</a></li>
+          <li><a href="#">更多传承人</a></li>
+          <li><a href="#">传承故事</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>关于我们</h5>
+        <ul>
+          <li><a href="#team">实践团简介</a></li>
+          <li><a href="#">北京科技大学</a></li>
+          <li><a href="#">联系我们</a></li>
+          <li><a href="#">版权声明</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 鹿望秦川实践团 · 北京科技大学 · 陇绣非遗宣传网站
+    </div>
+  </div>
+</footer>
+
+<!-- 回到顶部 -->
+<button class="back-top" id="backTop" aria-label="回到顶部"><i class="fas fa-arrow-up"></i></button>
+
+<!-- 灯箱 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="close" aria-label="关闭">&times;</button>
+  <img src="" alt="作品大图" id="lightboxImg"/>
+</div>
+
+<!-- ==================== JavaScript ==================== -->
+<script>
+// 汉堡菜单
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+document.querySelectorAll('.nav-menu a').forEach(link => {
+  link.addEventListener('click', () => {
+    document.getElementById('navMenu').classList.remove('open');
+  });
+});
+
+// 导航滚动阴影
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  document.getElementById('backTop').classList.toggle('show', window.scrollY > 500);
+});
+
+// 回到顶部
+document.getElementById('backTop').addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// 灯箱
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// 滚动入场动画
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
     }
-  </script>
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.feature-card, .stitch-card, .master-card, .gallery-item, .wujue-card, .action-card, .timeline-item').forEach((el, i) => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(24px)';
+  el.style.transition = 'all 0.65s cubic-bezier(0.25,0.46,0.45,0.94) ' + (i * 0.06) + 's';
+  observer.observe(el);
+});
+</script>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    // ============================================================
-    // 错误处理：捕获加载失败
-    // ============================================================
-    window.addEventListener('error', function(e) {
-      const loadingEl = document.getElementById('loading');
-      const errorEl = document.getElementById('error-msg');
-      if (loadingEl) loadingEl.classList.add('hidden');
-      if (errorEl) {
-        errorEl.style.display = 'block';
-        errorEl.innerHTML = '⚠️ 加载失败<br><small>请确保电脑已连接互联网<br>Three.js 需要通过 CDN 加载</small>';
-      }
-    });
-
-    // ============================================================
-    // 主场景初始化
-    // ============================================================
-    const container = document.getElementById('app');
-    const loadingEl = document.getElementById('loading');
-
-    // 渲染器
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    container.appendChild(renderer.domElement);
-
-    // 场景
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#1a1a2e');
-    scene.fog = new THREE.Fog('#1a1a2e', 15, 60);
-
-    // 相机
-    const camera = new THREE.PerspectiveCamera(
-      50,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      100
-    );
-    camera.position.set(6, 4, 10);
-    camera.lookAt(0, 0, 0);
-
-    // OrbitControls - 手动拖拽交互
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.target.set(0, 0.5, 0);
-    controls.minDistance = 3;
-    controls.maxDistance = 20;
-    controls.maxPolarAngle = Math.PI * 0.65;
-    controls.minPolarAngle = 0.2;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 0.8;
-    controls.update();
-
-    // ============================================================
-    // 光照系统
-    // ============================================================
-    function setupLights() {
-      // 环境光
-      const ambientLight = new THREE.AmbientLight('#2a2a4a', 1.2);
-      scene.add(ambientLight);
-
-      // 半球光
-      const hemisphereLight = new THREE.HemisphereLight('#d4cfc0', '#3a2a1a', 0.6);
-      scene.add(hemisphereLight);
-
-      // 主方向光
-      const keyLight = new THREE.DirectionalLight('#ffffff', 4);
-      keyLight.position.set(8, 10, 5);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 2048;
-      keyLight.shadow.mapSize.height = 2048;
-      keyLight.shadow.camera.near = 0.5;
-      keyLight.shadow.camera.far = 50;
-      keyLight.shadow.camera.left = -10;
-      keyLight.shadow.camera.right = 10;
-      keyLight.shadow.camera.top = 10;
-      keyLight.shadow.camera.bottom = -10;
-      keyLight.shadow.bias = -0.0001;
-      keyLight.shadow.normalBias = 0.02;
-      scene.add(keyLight);
-
-      // 侧面补光
-      const fillLight = new THREE.DirectionalLight('#8899cc', 1.5);
-      fillLight.position.set(-4, 2, -3);
-      scene.add(fillLight);
-
-      // 底部补光
-      const rimLight = new THREE.DirectionalLight('#d4af37', 2);
-      rimLight.position.set(0, -1, 3);
-      scene.add(rimLight);
-
-      // 顶部点光源
-      const topLight = new THREE.PointLight('#fff8e7', 15, 12, 1.5);
-      topLight.position.set(0, 5, 0);
-      scene.add(topLight);
-
-      // 氛围点光源
-      const accentLight1 = new THREE.PointLight('#d4af37', 8, 8, 2);
-      accentLight1.position.set(3, 1.5, 3);
-      scene.add(accentLight1);
-
-      const accentLight2 = new THREE.PointLight('#d4af37', 8, 8, 2);
-      accentLight2.position.set(-3, 1.5, -3);
-      scene.add(accentLight2);
-    }
-
-    setupLights();
-
-    // ============================================================
-    // 展演平台
-    // ============================================================
-    function createExhibitPlatform() {
-      const group = new THREE.Group();
-
-      // 底座（八角形）
-      const baseGeometry = new THREE.CylinderGeometry(2.2, 2.4, 0.25, 8);
-      const baseMaterial = new THREE.MeshStandardMaterial({
-        color: '#2a1f0e',
-        roughness: 0.5,
-        metalness: 0.3,
-      });
-      const base = new THREE.Mesh(baseGeometry, baseMaterial);
-      base.position.y = -0.15;
-      base.castShadow = true;
-      base.receiveShadow = true;
-      group.add(base);
-
-      // 台面
-      const platformGeometry = new THREE.CylinderGeometry(2.0, 2.1, 0.12, 64);
-      const platformMaterial = new THREE.MeshStandardMaterial({
-        color: '#3a2a1a',
-        roughness: 0.35,
-        metalness: 0.5,
-      });
-      const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-      platform.position.y = 0.05;
-      platform.castShadow = true;
-      platform.receiveShadow = true;
-      group.add(platform);
-
-      // 金色装饰环
-      const ringGeometry = new THREE.TorusGeometry(2.05, 0.04, 16, 64);
-      const ringMaterial = new THREE.MeshStandardMaterial({
-        color: '#d4af37',
-        roughness: 0.2,
-        metalness: 0.9,
-      });
-      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.12;
-      ring.receiveShadow = true;
-      group.add(ring);
-
-      // 内圈装饰
-      const innerRingGeometry = new THREE.TorusGeometry(1.6, 0.02, 8, 64);
-      const innerRingMaterial = new THREE.MeshStandardMaterial({
-        color: '#d4af37',
-        roughness: 0.15,
-        metalness: 0.95,
-      });
-      const innerRing = new THREE.Mesh(innerRingGeometry, innerRingMaterial);
-      innerRing.rotation.x = Math.PI / 2;
-      innerRing.position.y = 0.11;
-      group.add(innerRing);
-
-      // 底部光晕（半透明平面）
-      const glowGeometry = new THREE.PlaneGeometry(4.5, 4.5);
-      const glowMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          uColor: { value: new THREE.Color('#d4af37') },
-        },
-        vertexShader: /* glsl */ `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: /* glsl */ `
-          varying vec2 vUv;
-          uniform vec3 uColor;
-          void main() {
-            float dist = length(vUv - 0.5) * 2.0;
-            float alpha = smoothstep(1.0, 0.0, dist) * 0.25;
-            gl_FragColor = vec4(uColor, alpha);
-          }
-        `,
-        transparent: true,
-        depthWrite: false,
-      });
-      const glowPlane = new THREE.Mesh(glowGeometry, glowMaterial);
-      glowPlane.rotation.x = -Math.PI / 2;
-      glowPlane.position.y = 0.0;
-      group.add(glowPlane);
-
-      // 四角装饰柱
-      const pillarPositions = [
-        [1.8, 0, 1.8],
-        [-1.8, 0, 1.8],
-        [1.8, 0, -1.8],
-        [-1.8, 0, -1.8],
-      ];
-
-      pillarPositions.forEach(([px, py, pz]) => {
-        const pillarGeometry = new THREE.CylinderGeometry(0.08, 0.1, 1.5, 16);
-        const pillarMaterial = new THREE.MeshStandardMaterial({
-          color: '#d4af37',
-          roughness: 0.25,
-          metalness: 0.85,
-        });
-        const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
-        pillar.position.set(px, py + 0.75, pz);
-        pillar.castShadow = true;
-        pillar.receiveShadow = true;
-        group.add(pillar);
-
-        // 柱顶小球
-        const topBallGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-        const topBall = new THREE.Mesh(topBallGeometry, pillarMaterial);
-        topBall.position.set(px, py + 1.5, pz);
-        topBall.castShadow = true;
-        group.add(topBall);
-      });
-
-      // 地面投影接收面
-      const groundGeometry = new THREE.PlaneGeometry(12, 12);
-      const groundMaterial = new THREE.MeshStandardMaterial({
-        color: '#111122',
-        roughness: 0.9,
-        metalness: 0.1,
-      });
-      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.3;
-      ground.receiveShadow = true;
-      group.add(ground);
-
-      return group;
-    }
-
-    const platform = createExhibitPlatform();
-    scene.add(platform);
-
-    // ============================================================
-    // 演示几何体（5件非遗主题展品）
-    // ============================================================
-    function createDemoGeometries() {
-      const group = new THREE.Group();
-
-      // ---- 展品1：青瓷瓶（LatheGeometry 旋转体） ----
-      const vaseGroup = new THREE.Group();
-      const points = [];
-      const segments = 40;
-      for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        let radius;
-        if (t < 0.05) {
-          radius = 0.15 + t * 2;
-        } else if (t < 0.2) {
-          radius = 0.25 + Math.sin((t - 0.05) / 0.15 * Math.PI) * 0.35;
-        } else if (t < 0.4) {
-          radius = 0.6 - t * 0.5;
-        } else if (t < 0.55) {
-          radius = 0.35 + (t - 0.4) * 0.3;
-        } else if (t < 0.8) {
-          radius = 0.4 - (t - 0.55) * 0.7;
-        } else if (t < 0.95) {
-          radius = 0.22 + (t - 0.8) * 0.15;
-        } else {
-          radius = 0.24;
-        }
-        points.push(new THREE.Vector2(radius, t * 2.0 - 0.2));
-      }
-
-      const vaseGeometry = new THREE.LatheGeometry(points, 48);
-      const vaseMaterial = new THREE.MeshStandardMaterial({
-        color: '#7eb8b0',
-        roughness: 0.2,
-        metalness: 0.1,
-      });
-      const vase = new THREE.Mesh(vaseGeometry, vaseMaterial);
-      vase.position.y = 1.0;
-      vase.castShadow = true;
-      vase.receiveShadow = true;
-      vase.userData = { animate: true, rotationSpeed: 0.3, baseY: 1.0 };
-      vaseGroup.add(vase);
-
-      // 瓶子装饰金线
-      const ringGeo = new THREE.TorusGeometry(0.42, 0.015, 8, 48);
-      const ringMat = new THREE.MeshStandardMaterial({
-        color: '#d4af37',
-        roughness: 0.15,
-        metalness: 0.9,
-      });
-      const ring1 = new THREE.Mesh(ringGeo, ringMat);
-      ring1.position.y = 0.72;
-      ring1.rotation.x = Math.PI / 2;
-      vaseGroup.add(ring1);
-      const ring2 = new THREE.Mesh(ringGeo.clone(), ringMat);
-      ring2.position.y = 1.05;
-      ring2.rotation.x = Math.PI / 2;
-      ring2.scale.set(0.9, 0.9, 0.9);
-      vaseGroup.add(ring2);
-
-      vaseGroup.position.set(-1.2, 0.2, 0.6);
-      group.add(vaseGroup);
-
-      // ---- 展品2：玉璧（圆环体） ----
-      const biGroup = new THREE.Group();
-      const biGeometry = new THREE.TorusGeometry(0.55, 0.18, 32, 64);
-      const biMaterial = new THREE.MeshStandardMaterial({
-        color: '#c8e6c9',
-        roughness: 0.15,
-        metalness: 0.05,
-      });
-      const bi = new THREE.Mesh(biGeometry, biMaterial);
-      bi.position.y = 1.2;
-      bi.castShadow = true;
-      bi.receiveShadow = true;
-      bi.userData = { animate: true, rotationSpeed: 0.5, baseY: 1.2 };
-      biGroup.add(bi);
-
-      const standGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.8, 16);
-      const standMat = new THREE.MeshStandardMaterial({
-        color: '#3a2a1a',
-        roughness: 0.4,
-        metalness: 0.5,
-      });
-      const stand = new THREE.Mesh(standGeo, standMat);
-      stand.position.y = 0.5;
-      stand.castShadow = true;
-      stand.receiveShadow = true;
-      biGroup.add(stand);
-
-      biGroup.position.set(1.2, 0.2, -0.6);
-      group.add(biGroup);
-
-      // ---- 展品3：青铜鼎（BoxGeometry 组合） ----
-      const dingGroup = new THREE.Group();
-      const bronzeMat = new THREE.MeshStandardMaterial({
-        color: '#5d7a5e',
-        roughness: 0.35,
-        metalness: 0.7,
-      });
-
-      const bodyGeo = new THREE.BoxGeometry(0.9, 0.7, 0.7, 2, 2, 2);
-      const body = new THREE.Mesh(bodyGeo, bronzeMat);
-      body.position.y = 1.0;
-      body.castShadow = true;
-      body.receiveShadow = true;
-      dingGroup.add(body);
-
-      // 鼎足
-      for (let x = -1; x <= 1; x += 2) {
-        for (let z = -1; z <= 1; z += 2) {
-          const legGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.6, 8);
-          const leg = new THREE.Mesh(legGeo, bronzeMat);
-          leg.position.set(x * 0.3, 0.35, z * 0.25);
-          leg.castShadow = true;
-          leg.receiveShadow = true;
-          dingGroup.add(leg);
-        }
-      }
-
-      // 鼎耳
-      for (let x = -1; x <= 1; x += 2) {
-        const earGeo = new THREE.TorusGeometry(0.18, 0.06, 8, 12);
-        const ear = new THREE.Mesh(earGeo, bronzeMat);
-        ear.position.set(x * 0.3, 1.45, 0);
-        ear.rotation.z = Math.PI / 2 * x;
-        ear.castShadow = true;
-        dingGroup.add(ear);
-      }
-
-      // 鼎口装饰线
-      const rimGeo = new THREE.BoxGeometry(0.94, 0.04, 0.74);
-      const rim = new THREE.Mesh(rimGeo, new THREE.MeshStandardMaterial({
-        color: '#d4af37',
-        roughness: 0.2,
-        metalness: 0.85,
-      }));
-      rim.position.y = 1.36;
-      rim.castShadow = true;
-      dingGroup.add(rim);
-
-      dingGroup.position.set(0, 0.2, -0.8);
-      dingGroup.userData = { animate: true, rotationSpeed: 0.25, baseY: 0.2 };
-      group.add(dingGroup);
-
-      // ---- 展品4：绣球（IcosahedronGeometry） ----
-      const ballGroup = new THREE.Group();
-      const ballGeometry = new THREE.IcosahedronGeometry(0.45, 1);
-      const ballMaterial = new THREE.MeshStandardMaterial({
-        color: '#c62828',
-        roughness: 0.3,
-        metalness: 0.2,
-      });
-      const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-      ball.position.y = 1.2;
-      ball.castShadow = true;
-      ball.receiveShadow = true;
-      ball.userData = { animate: true, rotationSpeed: 0.6, baseY: 1.2 };
-      ballGroup.add(ball);
-
-      // 绣球金色线框
-      const wireframeGeo = new THREE.IcosahedronGeometry(0.47, 1);
-      const wireframeMat = new THREE.MeshBasicMaterial({
-        color: '#d4af37',
-        wireframe: true,
-        transparent: true,
-        opacity: 0.3,
-      });
-      const wireframe = new THREE.Mesh(wireframeGeo, wireframeMat);
-      wireframe.position.y = 1.2;
-      ballGroup.add(wireframe);
-
-      const ballStandGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.4, 16);
-      const ballStand = new THREE.Mesh(ballStandGeo, new THREE.MeshStandardMaterial({
-        color: '#3a2a1a',
-        roughness: 0.4,
-        metalness: 0.5,
-      }));
-      ballStand.position.y = 0.25;
-      ballStand.castShadow = true;
-      ballStand.receiveShadow = true;
-      ballGroup.add(ballStand);
-
-      ballGroup.position.set(-0.6, 0.2, 0.9);
-      group.add(ballGroup);
-
-      // ---- 展品5：卷轴/丝绸（圆柱体组合） ----
-      const scrollGroup = new THREE.Group();
-      const scrollBodyGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.2, 32);
-      const scrollBodyMat = new THREE.MeshStandardMaterial({
-        color: '#fff8e1',
-        roughness: 0.6,
-        metalness: 0.05,
-      });
-      const scrollBody = new THREE.Mesh(scrollBodyGeo, scrollBodyMat);
-      scrollBody.position.y = 1.1;
-      scrollBody.rotation.z = Math.PI / 2;
-      scrollBody.castShadow = true;
-      scrollBody.receiveShadow = true;
-      scrollGroup.add(scrollBody);
-
-      for (let x = -1; x <= 1; x += 2) {
-        const endGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.1, 32);
-        const endMat = new THREE.MeshStandardMaterial({
-          color: '#8d6e63',
-          roughness: 0.3,
-          metalness: 0.6,
-        });
-        const end = new THREE.Mesh(endGeo, endMat);
-        end.position.set(x * 0.62, 1.1, 0);
-        end.rotation.z = Math.PI / 2;
-        end.castShadow = true;
-        end.receiveShadow = true;
-        scrollGroup.add(end);
-      }
-
-      // 丝绸包裹效果
-      const silkGeo = new THREE.PlaneGeometry(0.5, 0.8, 8, 8);
-      const posAttr = silkGeo.getAttribute('position');
-      for (let i = 0; i < posAttr.count; i++) {
-        const y = posAttr.getY(i);
-        const x = posAttr.getX(i);
-        posAttr.setZ(i, Math.sin(y * 3) * 0.08 + Math.cos(x * 4) * 0.05);
-      }
-      silkGeo.computeVertexNormals();
-      const silkMat = new THREE.MeshStandardMaterial({
-        color: '#e8d5b7',
-        roughness: 0.5,
-        metalness: 0.1,
-        side: THREE.DoubleSide,
-      });
-      const silk = new THREE.Mesh(silkGeo, silkMat);
-      silk.position.set(0, 1.1, 0.3);
-      silk.rotation.x = -0.3;
-      silk.castShadow = true;
-      scrollGroup.add(silk);
-
-      scrollGroup.position.set(0.7, 0.2, 0.7);
-      scrollGroup.userData = { animate: true, rotationSpeed: 0.2, baseY: 0.2 };
-      group.add(scrollGroup);
-
-      return group;
-    }
-
-    const geometries = createDemoGeometries();
-    scene.add(geometries);
-
-    // ============================================================
-    // 粒子背景
-    // ============================================================
-    function createParticles() {
-      const count = 300;
-      const positions = new Float32Array(count * 3);
-      const sizes = new Float32Array(count);
-
-      for (let i = 0; i < count; i++) {
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const radius = 5 + Math.random() * 8;
-        positions[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
-        positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.6 + 2;
-        positions[i * 3 + 2] = Math.cos(phi) * radius;
-        sizes[i] = Math.random() * 3 + 1;
-      }
-
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext('2d');
-      const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-      gradient.addColorStop(0, 'rgba(212, 175, 55, 1)');
-      gradient.addColorStop(0.2, 'rgba(212, 175, 55, 0.8)');
-      gradient.addColorStop(0.5, 'rgba(212, 175, 55, 0.3)');
-      gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 32, 32);
-      const texture = new THREE.CanvasTexture(canvas);
-
-      const material = new THREE.PointsMaterial({
-        map: texture,
-        color: '#d4af37',
-        size: 0.12,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        transparent: true,
-        opacity: 0.6,
-      });
-
-      return new THREE.Points(geometry, material);
-    }
-
-    const particles = createParticles();
-    scene.add(particles);
-
-    // ============================================================
-    // 控制按钮
-    // ============================================================
-    const btnReset = document.getElementById('btn-reset');
-    const btnAuto = document.getElementById('btn-auto');
-
-    btnReset.addEventListener('click', () => {
-      const startPos = { x: 6, y: 4, z: 10 };
-      const startTarget = { x: 0, y: 0.5, z: 0 };
-      const duration = 800;
-      const startTime = Date.now();
-      const initPos = camera.position.clone();
-      const initTarget = controls.target.clone();
-
-      function animateReset() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1.0);
-        const eased = progress < 0.5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-        camera.position.lerpVectors(initPos, new THREE.Vector3(startPos.x, startPos.y, startPos.z), eased);
-        controls.target.lerpVectors(initTarget, new THREE.Vector3(startTarget.x, startTarget.y, startTarget.z), eased);
-        if (progress < 1) {
-          requestAnimationFrame(animateReset);
-        }
-      }
-      animateReset();
-    });
-
-    let isAutoRotate = false;
-    btnAuto.addEventListener('click', () => {
-      isAutoRotate = !isAutoRotate;
-      controls.autoRotate = isAutoRotate;
-      if (isAutoRotate) {
-        btnAuto.classList.add('active');
-        btnAuto.textContent = '停止旋转';
-      } else {
-        btnAuto.classList.remove('active');
-        btnAuto.textContent = '自动旋转';
-      }
-    });
-
-    // ============================================================
-    // 窗口大小响应
-    // ============================================================
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // ============================================================
-    // 动画循环
-    // ============================================================
-    const clock = new THREE.Clock();
-
-    function animate() {
-      requestAnimationFrame(animate);
-
-      const delta = clock.getDelta();
-      const elapsed = clock.getElapsedTime();
-
-      controls.update();
-
-      // 几何体自转动画
-      geometries.children.forEach((child, index) => {
-        if (child.userData && child.userData.animate) {
-          child.rotation.y += delta * child.userData.rotationSpeed;
-          child.position.y = child.userData.baseY + Math.sin(elapsed * 1.5 + index) * 0.15;
-        }
-      });
-
-      // 粒子缓慢旋转
-      particles.rotation.y += delta * 0.05;
-
-      renderer.render(scene, camera);
-    }
-
-    // ============================================================
-    // 启动
-    // ============================================================
-    setTimeout(() => {
-      loadingEl.classList.add('hidden');
-      setTimeout(() => loadingEl.remove(), 600);
-    }, 800);
-
-    animate();
-
-    console.log('🏮 非遗文化3D展演平台已就绪');
-  </script>
 </body>
 </html>
