@@ -6,6 +6,21 @@
 <title>陇绣非遗 · 鹿望秦川</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
 <link rel="stylesheet" href="style.css"/>
+<!-- ★ 新增：调整两个吉祥物外框间距，避免重叠 ★ -->
+<style>
+  .hero-visual {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem; /* 桌面端间距：约48px */
+  }
+  @media (max-width: 768px) {
+    .hero-visual {
+      gap: 1.5rem; /* 移动端适当缩小间距，防止溢出 */
+    }
+  }
+</style>
 </head>
 <body>
 
@@ -79,9 +94,13 @@
         </div>
       </div>
     </div>
+    <!-- 双吉祥物展示 -->
     <div class="hero-visual">
       <div class="visual-ring">
         <img src="鹿望秦川实践团资料/吉祥物鹿小陇.jpg" alt="鹿小陇" onerror="this.style.display='none'"/>
+      </div>
+      <div class="visual-ring">
+        <img src="鹿望秦川实践团资料/吉祥物鹿小甘.jpg" alt="鹿小甘" onerror="this.style.display='none'"/>
       </div>
     </div>
   </div>
