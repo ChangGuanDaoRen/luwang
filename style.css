@@ -1366,6 +1366,309 @@ ul { list-style: none; }
 }
 
 /* ============================================
+   副页专属样式 — 曹苑春 / 刘云帆展馆
+   ============================================ */
+
+/* 标签行（浅色版） */
+.tag-row-light {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.tag-row-light span {
+  padding: 5px 16px;
+  border: 1px solid rgba(184,148,75,0.35);
+  border-radius: 30px;
+  font-size: 0.82rem;
+  letter-spacing: 1px;
+  color: var(--gold);
+  transition: 0.3s;
+}
+.tag-row-light span:hover {
+  background: rgba(184,148,75,0.12);
+  border-color: var(--gold);
+}
+
+/* 艺术家介绍框 */
+.artist-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.artist-frame img {
+  aspect-ratio: 3/4;
+}
+
+/* 绣艺人生时间线 */
+.timeline-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.timeline-card {
+  padding: 28px 24px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(184,148,75,0.08);
+  transition: all 0.4s var(--ease);
+}
+.timeline-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold);
+}
+.timeline-card .tl-year {
+  font-size: 0.85rem;
+  color: var(--vermillion);
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  display: inline-flex;
+  padding: 3px 14px;
+  border: 1px solid var(--vermillion-light);
+  border-radius: 20px;
+  background: rgba(194,59,42,0.04);
+}
+.timeline-card .tl-content h4 {
+  font-size: 1.1rem;
+  color: var(--ink);
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.timeline-card .tl-content p {
+  font-size: 0.92rem;
+  color: var(--ink-wash);
+  line-height: 1.8;
+}
+
+/* 匠心之作网格 */
+.masterwork-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.masterwork-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.5s var(--ease);
+  border: 1px solid rgba(184,148,75,0.1);
+}
+.masterwork-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold);
+}
+.masterwork-card.featured {
+  grid-column: 1 / 3;
+  display: flex;
+  flex-direction: row;
+}
+.masterwork-card.featured .mw-img {
+  width: 55%;
+  height: 280px;
+  flex-shrink: 0;
+}
+.masterwork-card.featured .mw-body {
+  width: 45%;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.masterwork-card .mw-img {
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+.masterwork-card .mw-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s;
+}
+.masterwork-card:hover .mw-img img {
+  transform: scale(1.06);
+}
+.masterwork-card .mw-img .mw-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,20,16,0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.masterwork-card:hover .mw-img .mw-overlay {
+  opacity: 1;
+}
+.mw-overlay .mw-title {
+  color: #fff;
+  font-size: 1.2rem;
+  letter-spacing: 4px;
+  font-weight: 700;
+}
+.mw-overlay .mw-desc {
+  color: var(--gold-light);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  margin-top: 6px;
+}
+
+.masterwork-card .mw-body {
+  padding: 20px 24px 24px;
+}
+.masterwork-card .mw-body h4 {
+  font-size: 1.3rem;
+  color: var(--ink);
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+.masterwork-card .mw-body .mw-tag {
+  font-size: 0.78rem;
+  color: var(--gold);
+  padding: 2px 12px;
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  letter-spacing: 1px;
+  display: inline-block;
+  margin: 4px 0 10px;
+}
+.masterwork-card .mw-body p {
+  font-size: 0.92rem;
+  color: var(--ink-wash);
+  line-height: 1.8;
+}
+
+/* 副页画廊 — 5列密集排列 */
+.gallery-grid-sub {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* 金句区深色版 */
+.quote-section-sub {
+  background: linear-gradient(180deg, #1a1410, #2c2018);
+  color: #fff;
+}
+.quote-section-sub .quote-block blockquote {
+  color: #fff;
+}
+.quote-section-sub .quote-block cite {
+  color: var(--gold-light);
+}
+
+/* 3D 数字展演板块 */
+.exhibit3d-section {
+  background: linear-gradient(180deg, #1a1410 0%, #2c2018 40%, #1a1410 100%);
+}
+.exhibit3d-section .section-header .eyebrow { color: var(--gold-light); }
+.exhibit3d-section .section-header h2 { color: #f4ecd8; }
+.exhibit3d-section .section-header .subtitle { color: rgba(244,236,216,0.6); }
+
+.exhibit3d-intro {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.exhibit3d-intro p {
+  font-size: 0.95rem;
+  color: rgba(244,236,216,0.8);
+  line-height: 2;
+  max-width: 720px;
+  margin: 0 auto;
+  letter-spacing: 1px;
+}
+.exhibit3d-intro .accent {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.exhibit3d-frame-wrap {
+  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 2px solid rgba(212,175,55,0.25);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+  background: #0e0a08;
+}
+.exhibit3d-iframe {
+  width: 100%;
+  height: 520px;
+  display: block;
+  border: none;
+}
+.exhibit3d-fullscreen {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(42,31,16,0.75);
+  border: 1px solid rgba(212,175,55,0.5);
+  color: #d4af37;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  letter-spacing: 2px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.exhibit3d-fullscreen:hover {
+  background: rgba(212,175,55,0.2);
+  border-color: #d4af37;
+  transform: scale(1.04);
+}
+.exhibit3d-fullscreen i { margin-right: 6px; }
+
+/* 3D 全屏沉浸覆盖层 */
+.exhibit3d-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0e0a08;
+  display: none;
+  flex-direction: column;
+}
+.exhibit3d-overlay.active {
+  display: flex;
+}
+.exhibit3d-overlay-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10000;
+  background: rgba(42,31,16,0.75);
+  border: 1px solid rgba(212,175,55,0.5);
+  color: #d4af37;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  letter-spacing: 2px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(8px);
+}
+.exhibit3d-overlay-close:hover {
+  background: rgba(212,175,55,0.2);
+  border-color: #d4af37;
+}
+.exhibit3d-overlay-close i { margin-right: 6px; }
+.exhibit3d-overlay-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ============================================
    响应式
    ============================================ */
 @media (max-width: 1024px) {
@@ -1385,10 +1688,15 @@ ul { list-style: none; }
   .team-block { grid-template-columns: 1fr; }
   .team-brand { position: static; }
   .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+  .gallery-grid-sub { grid-template-columns: repeat(3, 1fr); }
   .wujue-grid { grid-template-columns: repeat(3, 1fr); }
   .action-cards { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .qr-img-wrap { max-width: 300px; }
+  .timeline-section { grid-template-columns: 1fr; }
+  .masterwork-grid { grid-template-columns: repeat(2, 1fr); }
+  .masterwork-card.featured { grid-column: 1 / -1; }
+  .exhibit3d-iframe { height: 420px; }
 }
 
 @media (max-width: 768px) {
@@ -1416,8 +1724,15 @@ ul { list-style: none; }
   .features-grid { grid-template-columns: 1fr 1fr; }
   .stitches-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery-grid-sub { grid-template-columns: repeat(2, 1fr); }
   .wujue-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .masterwork-grid { grid-template-columns: 1fr; }
+  .masterwork-card.featured { grid-column: 1; flex-direction: column; }
+  .masterwork-card.featured .mw-img { width: 100%; height: 220px; }
+  .masterwork-card.featured .mw-body { width: 100%; }
+  .exhibit3d-iframe { height: 360px; }
+  .exhibit3d-fullscreen { bottom: 14px; right: 14px; padding: 8px 16px; font-size: 0.82rem; }
 }
 
 @media (max-width: 480px) {
@@ -1429,6 +1744,7 @@ ul { list-style: none; }
   .stitches-grid { grid-template-columns: 1fr; }
   .stitch-card { flex-direction: column; align-items: center; text-align: center; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery-grid-sub { grid-template-columns: repeat(2, 1fr); }
   .wujue-grid { grid-template-columns: 1fr 1fr; }
   .action-cards { grid-template-columns: 1fr 1fr; }
   .btn { padding: 12px 24px; font-size: 0.88rem; }
