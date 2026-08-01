@@ -105,6 +105,10 @@
     #controls button:hover { background: rgba(212, 175, 55, 0.22); border-color: #d4af37; box-shadow: 0 0 18px rgba(212, 175, 55, 0.25); }
     #controls button.active { background: rgba(212, 175, 55, 0.4); border-color: #d4af37; color: #fff8e1; }
 
+    /* 嵌入副页(非沉浸式)时隐藏 重置视角/自动旋转 按钮，避免在手机上遮挡3D展演主体；
+       沉浸式展演(?immersive=1)保留这两个按钮 */
+    .inline-embed #controls { display: none; }
+
     /* Responsive */
     @media (max-width: 900px) {
       #info-panel { width: 280px; right: 16px; padding: 22px 22px 20px; }
@@ -113,9 +117,9 @@
       #header .subtitle { font-size: 12px; }
     }
     @media (max-width: 640px) {
-      #info-panel { top: auto; bottom: 160px; right: 12px; left: 12px; width: auto; max-height: 32vh; transform: none; }
-      #info-panel.collapsed { transform: translateY(calc(100% - 56px)); }
-      #toggle-info { top: -1px; left: 50%; transform: translate(-50%, -100%); width: 64px; height: 32px; border-radius: 4px 4px 0 0; border: 1px solid rgba(212, 175, 55, 0.3); border-bottom: none; }
+      /* 移动端隐藏介绍面板，避免遮挡3D展演主体（参考刘云帆展厅3D展演做法） */
+      #info-panel { display: none; }
+      #toggle-info { display: none; }
       #header { padding: 18px 20px; }
       #header .brand { font-size: 20px; letter-spacing: 6px; }
       #header .divider, #header .subtitle { display: none; }
@@ -123,6 +127,7 @@
   </style>
 </head>
 <body>
+  <script>/* 副页内嵌(无参数)时标记为inline,隐藏控制按钮; 沉浸式(?immersive=1)保留按钮 */if(!/[?&]immersive=1\b/.test(location.search))document.documentElement.classList.add('inline-embed');</script>
   <div id="app">
     <div id="loading">
       <div class="loading-spinner"></div>
