@@ -1019,6 +1019,26 @@ ul { list-style: none; }
 }
 .gallery-item:hover img { transform: scale(1.12); }
 
+/* 画廊分组分隔标题 */
+.gallery-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+.gallery-divider::before,
+.gallery-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
 /* 灯箱 */
 .lightbox {
   position: fixed;
